@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
+import { DragDropContext } from 'react-beautiful-dnd';
 import defaultData from '../Utils/defaultData';
+import List from '../Components/List';
 class App extends Component {
 
   constructor(props){
@@ -12,7 +14,7 @@ class App extends Component {
 
   componentDidMount() {
     // Preserves state to Storage API on site refresh or exit
-    window.addEventListener('beforeunload', this.saveStateToStorage.bind(this));
+    window.addEventListener('beforeunload', this.saveStateToStorage);
     this.hydrateStateWithStorage()
   }
 
@@ -20,14 +22,14 @@ class App extends Component {
     this.saveStateToStorage()
 
     // Removes beforeunload listener when component gracefully unmounts
-    window.removeEventListener('beforeunload', this.saveStateToStorage.bind(this));
+    window.removeEventListener('beforeunload', this.saveStateToStorage);
   }
 
-  saveStateToStorage() {
+  saveStateToStorage = () => {
     localStorage.setItem('listData', JSON.stringify(this.state))
   }
 
-  hydrateStateWithStorage(){
+  hydrateStateWithStorage = () => {
     const localStorageData = localStorage.getItem('listData')
     
     // Use predefined default state if local state is empty
@@ -40,12 +42,19 @@ class App extends Component {
     });
   }
 
+  onDragEnd = result => {
+    // TODO: save result to state
+  }
+
   render() {
+    const {items, itemOrder} = this.state;
     return (
       <div className="App">
-        {this.state.itemOrder.map(itemId => {
-          return itemId
-        })}
+        <DragDropContext
+          onDragEnd={this.onDragEnd}
+        >
+          <List items={items} itemOrder={itemOrder}/>
+        </DragDropContext>
       </div>
     );
   }
