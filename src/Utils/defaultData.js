@@ -19,12 +19,10 @@ const defaultData = {
     "item_5": {
       id: "item_5",
       content: "item_5",
-      isPinned: false,
     },
     "item_6": {
       id: "item_6",
       content: "item_6",
-      isPinned: false,
     }
   },
   itemOrder: ["item_1", "item_2", "item_3", "item_4", "item_5", "item_6"]

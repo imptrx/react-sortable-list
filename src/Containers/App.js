@@ -1,7 +1,14 @@
 import React, { Component } from 'react';
+import styled from 'styled-components';
 import { DragDropContext } from 'react-beautiful-dnd';
 import defaultData from '../Utils/defaultData';
 import List from '../Components/List';
+import Button from '../Components/Button';
+
+const Container = styled.div`
+  padding: 8px;
+`;
+
 class App extends Component {
 
   constructor(props){
@@ -68,16 +75,35 @@ class App extends Component {
     this.setState(newState);
   }
 
+  addNewItem = () => {
+    const newItemName = `Item_${this.state.itemOrder.length+1}`;
+    const newItems = {
+      ...this.state.items,
+      [newItemName]: {
+        id: newItemName,
+        content: newItemName
+      }
+    };
+    const newItemOrder = Array.from(this.state.itemOrder);
+    newItemOrder.unshift(newItemName);
+    const newState = {
+      items: newItems,
+      itemOrder: newItemOrder
+    }
+    this.setState(newState);
+  }
+
   render() {
     const {items, itemOrder} = this.state;
     return (
-      <div className="App">
+      <Container>
+        <Button text="Add Item" onClick={this.addNewItem}/> 
         <DragDropContext
           onDragEnd={this.onDragEnd}
         >
           <List items={items} itemOrder={itemOrder}/>
         </DragDropContext>
-      </div>
+      </Container>
     );
   }
 }
