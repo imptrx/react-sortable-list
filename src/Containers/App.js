@@ -43,7 +43,29 @@ class App extends Component {
   }
 
   onDragEnd = result => {
-    // TODO: save result to state
+    const { draggableId, source, destination } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const newItemOrder = Array.from(this.state.itemOrder);
+    newItemOrder.splice(source.index, 1);
+    newItemOrder.splice(destination.index, 0, draggableId);
+
+    const newState = {
+      ...this.state,
+      itemOrder: newItemOrder
+    }
+
+    this.setState(newState);
   }
 
   render() {
