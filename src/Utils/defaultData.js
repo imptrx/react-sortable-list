@@ -32,6 +32,7 @@ const defaultData = {
     }
   },
   itemOrder: ["item_6", "item_5", "item_4", "item_3", "item_2", "item_1"],
+  pinnedIndexes: [],
   recentlyDeleted: {}
 }
 

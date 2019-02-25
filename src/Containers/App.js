@@ -17,7 +17,8 @@ class App extends Component {
     this.state = {
       items: {},
       itemOrder: [],
-      recentlyDeleted: {}
+      recentlyDeleted: {},
+      pinnedIndexes: [],
     };
   }
 
@@ -42,12 +43,14 @@ class App extends Component {
     const localStorageData = localStorage.getItem('listData')
     
     // Use predefined default state if local state is empty
-    const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
+    // const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
+    const newData = defaultData;
 
     this.setState({
       items: newData.items,
       itemOrder: newData.itemOrder,
       recentlyDeleted: {},
+      pinnedIndexes: newData.pinnedIndexes,
     });
   }
 
@@ -88,38 +91,61 @@ class App extends Component {
         isPinned: false,
       }
     };
-    const newItemOrder = Array.from(this.state.itemOrder);
+    const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index])
+    const nonPinnedItems = this.state.itemOrder.filter(item => !pinnedItems.includes(item));
+    const newItemOrder = Array.from(nonPinnedItems);
     newItemOrder.unshift(newItemName);
+
+    // Splice the pinned items to create sorted array (this worked because pinned item indexes are sorted)
+    for (let index of this.state.pinnedIndexes) {
+      newItemOrder.splice(index, 0, this.state.itemOrder[index])
+    }
+
     const newState = {
+      ...this.state,
       items: newItems,
       itemOrder: newItemOrder,
-      recentlyDeleted: {},
+      recentlyDeleted: {}
     }
     this.setState(newState);
   }
 
   removeItem = (itemIndex) => {
     const itemToDelete = this.state.itemOrder[itemIndex];
+    const prevPinnedIndexes = Array.from(this.state.pinnedIndexes);
+
     const newRecentlyDeleted = {
       deletedItemIndex: itemIndex,
       deletedItemId: itemToDelete,
-      deletedItemValues: this.state.items[itemToDelete]
+      deletedItemValues: this.state.items[itemToDelete],
+      prevPinnedIndexes
     }
     const newItems = {...this.state.items};
     delete newItems[itemToDelete]
+
     const newItemOrder = Array.from(this.state.itemOrder);
     newItemOrder.splice(itemIndex, 1);
 
+    let newPinnedIndexes = Array.from(this.state.pinnedIndexes);
+    if (this.state.pinnedIndexes.includes(itemIndex)){
+      newPinnedIndexes.splice(newPinnedIndexes.indexOf(itemIndex), 1)
+      newPinnedIndexes = newPinnedIndexes.map(index => {
+        return (index > itemIndex) ? index-=1 : index;
+      })
+    }
+
     const newState = {
+      ...this.state,
       items: newItems,
       itemOrder: newItemOrder,
-      recentlyDeleted: newRecentlyDeleted
+      recentlyDeleted: newRecentlyDeleted,
+      pinnedIndexes: newPinnedIndexes
     }
     this.setState(newState);
   }
 
   undoMostRecentDeletion = () => {
-    const {deletedItemId, deletedItemIndex, deletedItemValues} = this.state.recentlyDeleted;
+    const {deletedItemId, deletedItemIndex, deletedItemValues, prevPinnedIndexes} = this.state.recentlyDeleted;
     const newItemOrder = Array.from(this.state.itemOrder);
     newItemOrder.splice(deletedItemIndex, 0, deletedItemId);
     const newItems = {
@@ -128,26 +154,53 @@ class App extends Component {
         ...deletedItemValues
       }
     }
+    const newPinnedIndexes = Array.from(prevPinnedIndexes);
+
     const newState = {
+      ...this.state,
       items: newItems,
       itemOrder: newItemOrder,
-      recentlyDeleted: {}
+      recentlyDeleted: {},
+      pinnedIndexes: newPinnedIndexes
     }
     this.setState(newState);
   }
 
-  toggleIsPinned = (itemId) => {
+  pinItem = (itemId, index) => {
+    const newPinnedIndexes = Array.from(this.state.pinnedIndexes);
+    newPinnedIndexes.push(index);
+    newPinnedIndexes.sort((a, b) => a - b);
     const newItems = {
       ...this.state.items,
       [itemId]: {
         ...this.state.items[itemId],
-        isPinned: !this.state.items[itemId].isPinned
+        isPinned: true
+      }
+    }
+    const newState = {
+      ...this.state,
+      items: newItems,
+      recentlyDeleted: {},
+      pinnedIndexes: newPinnedIndexes
+    }
+    this.setState(newState);
+  }
+
+  unpinItem = (itemId, index) => {
+    const newPinnedIndexes = Array.from(this.state.pinnedIndexes);
+    newPinnedIndexes.splice(newPinnedIndexes.indexOf(index), 1);
+    const newItems = {
+      ...this.state.items,
+      [itemId]: {
+        ...this.state.items[itemId],
+        isPinned: false
       }
     };
     const newState = {
       ...this.state,
       items: newItems,
-      recentlyDeleted: {}
+      recentlyDeleted: {},
+      pinnedIndexes: newPinnedIndexes
     }
     this.setState(newState);
   }
@@ -160,7 +213,7 @@ class App extends Component {
         <DragDropContext
           onDragEnd={this.onDragEnd}
         >
-          <List items={items} itemOrder={itemOrder} removeItem={this.removeItem} toggleIsPinned={this.toggleIsPinned}/>
+          <List items={items} itemOrder={itemOrder} removeItem={this.removeItem} pinItem={this.pinItem} unpinItem={this.unpinItem}/>
         </DragDropContext>
         {(Object.keys(recentlyDeleted).length !== 0) && <Button text="Restore Most Recent Deletion" onClick={this.undoMostRecentDeletion}/>}
       </Container>

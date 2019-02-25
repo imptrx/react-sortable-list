@@ -20,7 +20,8 @@ class List extends React.Component {
       itemOrder,
       maxItemsDisplay,
       removeItem,
-      toggleIsPinned
+      pinItem,
+      unpinItem,
     } = this.props;
 
     const displayItemOrder = itemOrder.slice(0, maxItemsDisplay);
@@ -34,7 +35,7 @@ class List extends React.Component {
               ref={provided.innerRef}
               {...provided.droppableProps}
             >
-              {displayItems.map((item, index) => <RowItem key={item.id} item={item} index={index} removeItem={removeItem} toggleIsPinned={toggleIsPinned}/>)}
+              {displayItems.map((item, index) => <RowItem key={item.id} item={item} index={index} removeItem={removeItem} pinItem={pinItem} unpinItem={unpinItem}/>)}
               {provided.placeholder}
             </ItemList>
           )}

@@ -26,7 +26,8 @@ class RowItem extends React.Component {
       item,
       index,
       removeItem,
-      toggleIsPinned
+      pinItem,
+      unpinItem
     } = this.props;
     return (
       <Draggable draggableId={item.id} index={index} isDragDisabled={item.isPinned}>
@@ -38,8 +39,8 @@ class RowItem extends React.Component {
           >
             {item.content}
             <RowButton onClick={()=>removeItem(index)} text="Remove Item"/>
-            {!item.isPinned && <RowButton onClick={()=>toggleIsPinned(item.id)} text="Pin Item"/>}
-            {item.isPinned && <RowButton onClick={()=>toggleIsPinned(item.id)} text="Unpin Item"/>}
+            {!item.isPinned && <RowButton onClick={()=>pinItem(item.id, index)} text="Pin Item"/>}
+            {item.isPinned && <RowButton onClick={()=>unpinItem(item.id, index)} text="Unpin Item"/>}
             {item.isPinned && <PinnedText>Pinned</PinnedText>}
           </Container>
         )}
