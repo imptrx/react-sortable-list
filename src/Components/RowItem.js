@@ -10,9 +10,14 @@ const Container = styled.div`
   background-color: white;
 `;
 
-const DeleteButton = styled(Button)`
+const RowButton = styled(Button)`
   float: right;
-  margin: 0;
+  margin: 0 0 0 8px;
+`;
+
+const PinnedText = styled.strong`
+  float: right;
+  color: red;
 `;
 
 class RowItem extends React.Component {
@@ -20,10 +25,11 @@ class RowItem extends React.Component {
     const {
       item,
       index,
-      removeItem
+      removeItem,
+      toggleIsPinned
     } = this.props;
     return (
-      <Draggable draggableId={item.id} index={index}>
+      <Draggable draggableId={item.id} index={index} isDragDisabled={item.isPinned}>
         {(provided) => (
           <Container 
             {...provided.draggableProps}
@@ -31,7 +37,10 @@ class RowItem extends React.Component {
             ref={provided.innerRef}
           >
             {item.content}
-            <DeleteButton onClick={()=>removeItem(index)} text="Remove Item"/>
+            <RowButton onClick={()=>removeItem(index)} text="Remove Item"/>
+            {!item.isPinned && <RowButton onClick={()=>toggleIsPinned(item.id)} text="Pin Item"/>}
+            {item.isPinned && <RowButton onClick={()=>toggleIsPinned(item.id)} text="Unpin Item"/>}
+            {item.isPinned && <PinnedText>Pinned</PinnedText>}
           </Container>
         )}
       </Draggable>

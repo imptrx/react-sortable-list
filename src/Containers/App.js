@@ -10,10 +10,6 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const AddButton = styled(Button)``;
-
-const UndoButton = styled(Button)``;
-
 class App extends Component {
 
   constructor(props){
@@ -88,7 +84,8 @@ class App extends Component {
       ...this.state.items,
       [newItemName]: {
         id: newItemName,
-        content: newItemName
+        content: newItemName,
+        isPinned: false,
       }
     };
     const newItemOrder = Array.from(this.state.itemOrder);
@@ -106,7 +103,7 @@ class App extends Component {
     const newRecentlyDeleted = {
       deletedItemIndex: itemIndex,
       deletedItemId: itemToDelete,
-      deletedItemContent: this.state.items[itemToDelete].content
+      deletedItemValues: this.state.items[itemToDelete]
     }
     const newItems = {...this.state.items};
     delete newItems[itemToDelete]
@@ -122,14 +119,13 @@ class App extends Component {
   }
 
   undoMostRecentDeletion = () => {
-    const {deletedItemId, deletedItemIndex, deletedItemContent} = this.state.recentlyDeleted;
+    const {deletedItemId, deletedItemIndex, deletedItemValues} = this.state.recentlyDeleted;
     const newItemOrder = Array.from(this.state.itemOrder);
     newItemOrder.splice(deletedItemIndex, 0, deletedItemId);
     const newItems = {
       ...this.state.items,
       [deletedItemId]: {
-        id: deletedItemId,
-        content: deletedItemContent
+        ...deletedItemValues
       }
     }
     const newState = {
@@ -140,17 +136,33 @@ class App extends Component {
     this.setState(newState);
   }
 
+  toggleIsPinned = (itemId) => {
+    const newItems = {
+      ...this.state.items,
+      [itemId]: {
+        ...this.state.items[itemId],
+        isPinned: !this.state.items[itemId].isPinned
+      }
+    };
+    const newState = {
+      ...this.state,
+      items: newItems,
+      recentlyDeleted: {}
+    }
+    this.setState(newState);
+  }
+
   render() {
     const {items, itemOrder, recentlyDeleted} = this.state;
     return (
       <Container>
-        <AddButton text="Add Item!" onClick={this.addNewItem}/> 
+        <Button text="Add Item!" onClick={this.addNewItem}/> 
         <DragDropContext
           onDragEnd={this.onDragEnd}
         >
-          <List items={items} itemOrder={itemOrder} removeItem={this.removeItem}/>
+          <List items={items} itemOrder={itemOrder} removeItem={this.removeItem} toggleIsPinned={this.toggleIsPinned}/>
         </DragDropContext>
-        {(Object.keys(recentlyDeleted).length !== 0) && <UndoButton text="Restore Most Recent Deletion" onClick={this.undoMostRecentDeletion}/>}
+        {(Object.keys(recentlyDeleted).length !== 0) && <Button text="Restore Most Recent Deletion" onClick={this.undoMostRecentDeletion}/>}
       </Container>
     );
   }
