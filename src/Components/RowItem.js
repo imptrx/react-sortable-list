@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
+import Button from './Button';
 
 const Container = styled.div`
   border: 1px solid lightgrey;
@@ -9,11 +10,16 @@ const Container = styled.div`
   background-color: white;
 `;
 
+const DeleteButton = styled(Button)`
+  float: right;
+`;
+
 class RowItem extends React.Component {
   render () {
     const {
       item,
-      index
+      index,
+      removeItem
     } = this.props;
     return (
       <Draggable draggableId={item.id} index={index}>
@@ -24,6 +30,7 @@ class RowItem extends React.Component {
             ref={provided.innerRef}
           >
             {item.content}
+            <DeleteButton onClick={()=>removeItem(index)} text="Remove Item"/>
           </Container>
         )}
       </Draggable>

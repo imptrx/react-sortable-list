@@ -18,7 +18,8 @@ class List extends React.Component {
     const {
       items,
       itemOrder,
-      maxItemsDisplay
+      maxItemsDisplay,
+      removeItem
     } = this.props;
 
     const displayItemOrder = itemOrder.slice(0, maxItemsDisplay);
@@ -32,7 +33,7 @@ class List extends React.Component {
               ref={provided.innerRef}
               {...provided.droppableProps}
             >
-              {displayItems.map((item, index) => <RowItem key={item.id} item={item} index={index} />)}
+              {displayItems.map((item, index) => <RowItem key={item.id} item={item} index={index} removeItem={removeItem}/>)}
               {provided.placeholder}
             </ItemList>
           )}

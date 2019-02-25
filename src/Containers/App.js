@@ -7,6 +7,12 @@ import Button from '../Components/Button';
 
 const Container = styled.div`
   padding: 8px;
+  width: 100%;
+`;
+
+const AddButton = styled(Button)`
+  margin: 8px auto;
+  display: block;
 `;
 
 class App extends Component {
@@ -93,15 +99,27 @@ class App extends Component {
     this.setState(newState);
   }
 
+  removeItem = (itemIndex) => {
+    const newItems = {...this.state.items};
+    delete newItems[this.state.itemOrder[itemIndex]]
+    const newItemOrder = Array.from(this.state.itemOrder);
+    newItemOrder.splice(itemIndex, 1);
+    const newState = {
+      items: newItems,
+      itemOrder: newItemOrder
+    }
+    this.setState(newState);
+  }
+
   render() {
     const {items, itemOrder} = this.state;
     return (
       <Container>
-        <Button text="Add Item" onClick={this.addNewItem}/> 
+        <AddButton text="Add Item!" onClick={this.addNewItem}/> 
         <DragDropContext
           onDragEnd={this.onDragEnd}
         >
-          <List items={items} itemOrder={itemOrder}/>
+          <List items={items} itemOrder={itemOrder} removeItem={this.removeItem}/>
         </DragDropContext>
       </Container>
     );
