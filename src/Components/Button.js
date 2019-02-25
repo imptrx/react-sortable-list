@@ -1,7 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const Container = styled.button``;
+const Container = styled.button`
+  margin: 8px auto;
+  display: block;
+`;
 
 class Button extends React.Component {
   render() {

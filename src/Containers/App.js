@@ -10,10 +10,9 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const AddButton = styled(Button)`
-  margin: 8px auto;
-  display: block;
-`;
+const AddButton = styled(Button)``;
+
+const UndoButton = styled(Button)``;
 
 class App extends Component {
 
@@ -22,6 +21,7 @@ class App extends Component {
     this.state = {
       items: {},
       itemOrder: [],
+      recentlyDeleted: {}
     };
   }
 
@@ -49,9 +49,9 @@ class App extends Component {
     const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
 
     this.setState({
-      ...this.state,
       items: newData.items,
-      itemOrder: newData.itemOrder
+      itemOrder: newData.itemOrder,
+      recentlyDeleted: {},
     });
   }
 
@@ -75,14 +75,15 @@ class App extends Component {
 
     const newState = {
       ...this.state,
-      itemOrder: newItemOrder
+      itemOrder: newItemOrder,
+      recentlyDeleted: {}
     }
 
     this.setState(newState);
   }
 
   addNewItem = () => {
-    const newItemName = `Item_${this.state.itemOrder.length+1}`;
+    const newItemName = `Item_${this.state.itemOrder.length+1}_(${new Date().toLocaleTimeString()})`;
     const newItems = {
       ...this.state.items,
       [newItemName]: {
@@ -94,25 +95,53 @@ class App extends Component {
     newItemOrder.unshift(newItemName);
     const newState = {
       items: newItems,
-      itemOrder: newItemOrder
+      itemOrder: newItemOrder,
+      recentlyDeleted: {},
     }
     this.setState(newState);
   }
 
   removeItem = (itemIndex) => {
+    const itemToDelete = this.state.itemOrder[itemIndex];
+    const newRecentlyDeleted = {
+      deletedItemIndex: itemIndex,
+      deletedItemId: itemToDelete,
+      deletedItemContent: this.state.items[itemToDelete].content
+    }
     const newItems = {...this.state.items};
-    delete newItems[this.state.itemOrder[itemIndex]]
+    delete newItems[itemToDelete]
     const newItemOrder = Array.from(this.state.itemOrder);
     newItemOrder.splice(itemIndex, 1);
+
     const newState = {
       items: newItems,
-      itemOrder: newItemOrder
+      itemOrder: newItemOrder,
+      recentlyDeleted: newRecentlyDeleted
+    }
+    this.setState(newState);
+  }
+
+  undoMostRecentDeletion = () => {
+    const {deletedItemId, deletedItemIndex, deletedItemContent} = this.state.recentlyDeleted;
+    const newItemOrder = Array.from(this.state.itemOrder);
+    newItemOrder.splice(deletedItemIndex, 0, deletedItemId);
+    const newItems = {
+      ...this.state.items,
+      [deletedItemId]: {
+        id: deletedItemId,
+        content: deletedItemContent
+      }
+    }
+    const newState = {
+      items: newItems,
+      itemOrder: newItemOrder,
+      recentlyDeleted: {}
     }
     this.setState(newState);
   }
 
   render() {
-    const {items, itemOrder} = this.state;
+    const {items, itemOrder, recentlyDeleted} = this.state;
     return (
       <Container>
         <AddButton text="Add Item!" onClick={this.addNewItem}/> 
@@ -121,6 +150,7 @@ class App extends Component {
         >
           <List items={items} itemOrder={itemOrder} removeItem={this.removeItem}/>
         </DragDropContext>
+        {(Object.keys(recentlyDeleted).length !== 0) && <UndoButton text="Restore Most Recent Deletion" onClick={this.undoMostRecentDeletion}/>}
       </Container>
     );
   }

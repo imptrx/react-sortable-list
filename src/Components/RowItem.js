@@ -12,6 +12,7 @@ const Container = styled.div`
 
 const DeleteButton = styled(Button)`
   float: right;
+  margin: 0;
 `;
 
 class RowItem extends React.Component {

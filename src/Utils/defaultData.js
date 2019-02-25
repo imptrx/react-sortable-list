@@ -25,7 +25,8 @@ const defaultData = {
       content: "item_6",
     }
   },
-  itemOrder: ["item_6", "item_5", "item_4", "item_3", "item_2", "item_1"]
+  itemOrder: ["item_6", "item_5", "item_4", "item_3", "item_2", "item_1"],
+  recentlyDeleted: {}
 }
 
 export default defaultData;
