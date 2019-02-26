@@ -43,8 +43,7 @@ class App extends Component {
     const localStorageData = localStorage.getItem('listData')
     
     // Use predefined default state if local state is empty
-    // const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
-    const newData = defaultData
+    const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
 
     this.setState({
       items: newData.items,
@@ -54,13 +53,24 @@ class App extends Component {
     });
   }
 
+  getSortedItemOrder = (pinnedIndexes, unsortedItems, itemRef) => {
+    const pinnedItems = pinnedIndexes.map(index => itemRef[index]);
+    const result = unsortedItems.filter(item => !pinnedItems.includes(item));
+    for (let index of pinnedIndexes) {
+      result.splice(index, 0, itemRef[index]);
+    }
+    return result;
+  }
+
   onDragEnd = result => {
     const { draggableId, source, destination } = result;
 
+    // Dragged outside valid context
     if (!destination) {
       return;
     }
 
+    // No dragged location changes
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -72,11 +82,7 @@ class App extends Component {
     itemOrderFromDrag.splice(source.index, 1);
     itemOrderFromDrag.splice(destination.index, 0, draggableId);
 
-    const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index])
-    const newItemOrder = itemOrderFromDrag.filter(item => !pinnedItems.includes(item));
-    for (let index of this.state.pinnedIndexes) {
-      newItemOrder.splice(index, 0, this.state.itemOrder[index])
-    }
+    const newItemOrder = this.getSortedItemOrder(this.state.pinnedIndexes, itemOrderFromDrag, this.state.itemOrder);
 
     const newState = {
       ...this.state,
@@ -97,15 +103,10 @@ class App extends Component {
         isPinned: false,
       }
     };
-    const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index])
-    const nonPinnedItems = this.state.itemOrder.filter(item => !pinnedItems.includes(item));
-    const newItemOrder = Array.from(nonPinnedItems);
-    newItemOrder.unshift(newItemName);
+    const updatedItemOrder = Array.from(this.state.itemOrder);
+    updatedItemOrder.unshift(newItemName);
 
-    // Splice the pinned items to create sorted array (this worked because pinned item indexes are sorted)
-    for (let index of this.state.pinnedIndexes) {
-      newItemOrder.splice(index, 0, this.state.itemOrder[index])
-    }
+    const newItemOrder = this.getSortedItemOrder(this.state.pinnedIndexes, updatedItemOrder, this.state.itemOrder);
 
     const newState = {
       ...this.state,
@@ -134,7 +135,6 @@ class App extends Component {
     let newItemOrder = Array.from(this.state.itemOrder);
     //Removing a pinned item
     if (this.state.pinnedIndexes.includes(itemIndex)) {
-      
       newPinnedIndexes.splice(newPinnedIndexes.indexOf(itemIndex), 1);
       newPinnedIndexes = newPinnedIndexes.map(index => {
         return (index > itemIndex) ? index-=1 : index;

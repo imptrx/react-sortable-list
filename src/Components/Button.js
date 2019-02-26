@@ -6,7 +6,7 @@ const Container = styled.button`
   display: block;
 `;
 
-class Button extends React.Component {
+class Button extends React.PureComponent {
   render() {
     const { className, onClick, text } = this.props;
     return <Container className={className} onClick={onClick}>{text}</Container>
