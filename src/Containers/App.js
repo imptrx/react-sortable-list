@@ -43,7 +43,8 @@ class App extends Component {
     const localStorageData = localStorage.getItem('listData')
     
     // Use predefined default state if local state is empty
-    const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
+    // const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
+    const newData = defaultData
 
     this.setState({
       items: newData.items,
@@ -156,20 +157,32 @@ class App extends Component {
         const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
         const nonPinnedItems = this.state.itemOrder.filter(item => !pinnedItems.includes(item));
         const lastUnpinnedIndex = this.state.itemOrder.indexOf(nonPinnedItems.slice(-1)[0]);
-        newPinnedIndexes = newPinnedIndexes.map(index => (index > lastUnpinnedIndex)? index-1: index);
+        const pinnedItemsRef = {};
+        const correctedIndexes = []
+        for (let index of newPinnedIndexes) {
+          if (index > lastUnpinnedIndex) {
+            pinnedItemsRef[index-1] = this.state.itemOrder[index];
+            correctedIndexes.push(index-1)
+          }
+          else{
+            pinnedItemsRef[index] = this.state.itemOrder[index];
+            correctedIndexes.push(index)
+          }
+        }
+        newPinnedIndexes = Array.from(correctedIndexes);
         newItemOrder.splice(itemIndex, 1);
-        const newItemOrderBeforeSort = Array.from(newItemOrder);
         newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
         for (let index of newPinnedIndexes) {
-          newItemOrder.splice(index, 0 , newItemOrderBeforeSort[index])
+          newItemOrder.splice(index, 0 , pinnedItemsRef[index])
         }
       }
-
-      newItemOrder.splice(itemIndex, 1);
-      const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
-      newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
-      for (let index of newPinnedIndexes) {
-        newItemOrder.splice(index, 0 , this.state.itemOrder[index])
+      else {
+        newItemOrder.splice(itemIndex, 1);
+        const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
+        newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
+        for (let index of newPinnedIndexes) {
+          newItemOrder.splice(index, 0 , this.state.itemOrder[index])
+        }
       }
     }
 
