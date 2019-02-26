@@ -118,7 +118,7 @@ class App extends Component {
   }
 
   removeItem = (itemIndex) => {
-    // Save data for undo
+    // Save data to state for undo
     const itemToDelete = this.state.itemOrder[itemIndex];
     const prevPinnedIndexes = Array.from(this.state.pinnedIndexes);
     const newRecentlyDeleted = {
@@ -140,25 +140,21 @@ class App extends Component {
         return (index > itemIndex) ? index-=1 : index;
       });
 
-      newItemOrder.splice(itemIndex, 1);
-      const newItemOrderBeforeSort = Array.from(newItemOrder);
-
-      const pinnedItems = newPinnedIndexes.map(index => newItemOrder[index]);
-      newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
-      
-      for (let index of newPinnedIndexes) {
-        newItemOrder.splice(index, 0, newItemOrderBeforeSort[index])
-      }
+      const updatedItemOrder = Array.from(this.state.itemOrder);
+      updatedItemOrder.splice(itemIndex, 1);
+      newItemOrder = this.getSortedItemOrder(newPinnedIndexes, updatedItemOrder, updatedItemOrder);
     }
     // Remove non-pinned item
     else {
       //Address edge case where pinned item's index exist beyond new list size
       if (this.state.pinnedIndexes.slice(-1)[0] >= this.state.itemOrder.length - 1){
+
         const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
         const nonPinnedItems = this.state.itemOrder.filter(item => !pinnedItems.includes(item));
         const lastUnpinnedIndex = this.state.itemOrder.indexOf(nonPinnedItems.slice(-1)[0]);
         const pinnedItemsRef = {};
         const correctedIndexes = []
+        // Using the last unpinned index as a pivot point, adjust for out of range pinned items
         for (let index of newPinnedIndexes) {
           if (index > lastUnpinnedIndex) {
             pinnedItemsRef[index-1] = this.state.itemOrder[index];
@@ -169,6 +165,7 @@ class App extends Component {
             correctedIndexes.push(index)
           }
         }
+
         newPinnedIndexes = Array.from(correctedIndexes);
         newItemOrder.splice(itemIndex, 1);
         newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
@@ -177,12 +174,9 @@ class App extends Component {
         }
       }
       else {
-        newItemOrder.splice(itemIndex, 1);
-        const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
-        newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
-        for (let index of newPinnedIndexes) {
-          newItemOrder.splice(index, 0 , this.state.itemOrder[index])
-        }
+        const updatedItemOrder = Array.from(this.state.itemOrder);
+        updatedItemOrder.splice(itemIndex, 1);
+        newItemOrder = this.getSortedItemOrder(this.state.pinnedIndexes, updatedItemOrder, this.state.itemOrder);
       }
     }
 
