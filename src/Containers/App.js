@@ -7,7 +7,8 @@ import Button from '../Components/Button';
 
 const Container = styled.div`
   padding: 8px;
-  width: 100%;
+  max-width: 50em;
+  margin: 0 auto;
 `;
 
 class App extends Component {
