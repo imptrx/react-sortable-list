@@ -43,8 +43,7 @@ class App extends Component {
     const localStorageData = localStorage.getItem('listData')
     
     // Use predefined default state if local state is empty
-    // const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
-    const newData = defaultData;
+    const newData = localStorageData ? JSON.parse(localStorageData) : defaultData;
 
     this.setState({
       items: newData.items,
@@ -68,9 +67,15 @@ class App extends Component {
       return;
     }
 
-    const newItemOrder = Array.from(this.state.itemOrder);
-    newItemOrder.splice(source.index, 1);
-    newItemOrder.splice(destination.index, 0, draggableId);
+    const itemOrderFromDrag = Array.from(this.state.itemOrder);
+    itemOrderFromDrag.splice(source.index, 1);
+    itemOrderFromDrag.splice(destination.index, 0, draggableId);
+
+    const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index])
+    const newItemOrder = itemOrderFromDrag.filter(item => !pinnedItems.includes(item));
+    for (let index of this.state.pinnedIndexes) {
+      newItemOrder.splice(index, 0, this.state.itemOrder[index])
+    }
 
     const newState = {
       ...this.state,
@@ -111,27 +116,61 @@ class App extends Component {
   }
 
   removeItem = (itemIndex) => {
+    // Save data for undo
     const itemToDelete = this.state.itemOrder[itemIndex];
     const prevPinnedIndexes = Array.from(this.state.pinnedIndexes);
-
     const newRecentlyDeleted = {
       deletedItemIndex: itemIndex,
       deletedItemId: itemToDelete,
       deletedItemValues: this.state.items[itemToDelete],
       prevPinnedIndexes
     }
+    
     const newItems = {...this.state.items};
     delete newItems[itemToDelete]
 
-    const newItemOrder = Array.from(this.state.itemOrder);
-    newItemOrder.splice(itemIndex, 1);
-
     let newPinnedIndexes = Array.from(this.state.pinnedIndexes);
-    if (this.state.pinnedIndexes.includes(itemIndex)){
-      newPinnedIndexes.splice(newPinnedIndexes.indexOf(itemIndex), 1)
+    let newItemOrder = Array.from(this.state.itemOrder);
+    //Removing a pinned item
+    if (this.state.pinnedIndexes.includes(itemIndex)) {
+      
+      newPinnedIndexes.splice(newPinnedIndexes.indexOf(itemIndex), 1);
       newPinnedIndexes = newPinnedIndexes.map(index => {
         return (index > itemIndex) ? index-=1 : index;
-      })
+      });
+
+      newItemOrder.splice(itemIndex, 1);
+      const newItemOrderBeforeSort = Array.from(newItemOrder);
+
+      const pinnedItems = newPinnedIndexes.map(index => newItemOrder[index]);
+      newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
+      
+      for (let index of newPinnedIndexes) {
+        newItemOrder.splice(index, 0, newItemOrderBeforeSort[index])
+      }
+    }
+    // Remove non-pinned item
+    else {
+      //Address edge case where pinned item's index exist beyond new list size
+      if (this.state.pinnedIndexes.slice(-1)[0] >= this.state.itemOrder.length - 1){
+        const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
+        const nonPinnedItems = this.state.itemOrder.filter(item => !pinnedItems.includes(item));
+        const lastUnpinnedIndex = this.state.itemOrder.indexOf(nonPinnedItems.slice(-1)[0]);
+        newPinnedIndexes = newPinnedIndexes.map(index => (index > lastUnpinnedIndex)? index-1: index);
+        newItemOrder.splice(itemIndex, 1);
+        const newItemOrderBeforeSort = Array.from(newItemOrder);
+        newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
+        for (let index of newPinnedIndexes) {
+          newItemOrder.splice(index, 0 , newItemOrderBeforeSort[index])
+        }
+      }
+
+      newItemOrder.splice(itemIndex, 1);
+      const pinnedItems = this.state.pinnedIndexes.map(index => this.state.itemOrder[index]);
+      newItemOrder = newItemOrder.filter(item => !pinnedItems.includes(item));
+      for (let index of newPinnedIndexes) {
+        newItemOrder.splice(index, 0 , this.state.itemOrder[index])
+      }
     }
 
     const newState = {
@@ -141,6 +180,7 @@ class App extends Component {
       recentlyDeleted: newRecentlyDeleted,
       pinnedIndexes: newPinnedIndexes
     }
+
     this.setState(newState);
   }
 
